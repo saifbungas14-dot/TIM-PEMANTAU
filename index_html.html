@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PKKM Sumenep 2026 - Pemantauan</title>
+<style>
+:root{--nav:#123a63;--nav2:#1e5b8d;--bg:#f4f7fb;--card:#fff;--text:#17324d;--muted:#6b7d90;--line:#dbe4ec;--ok:#1f8a5b;--warn:#d78b00;--bad:#c63d3d}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{background:linear-gradient(135deg,var(--nav),var(--nav2));color:#fff;padding:22px 28px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:22px} header p{margin:5px 0 0;opacity:.88}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px} nav button,.btn{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:700;background:#fff;color:var(--nav)} nav button.active{background:#dcefff}
+main{max-width:1250px;margin:22px auto;padding:0 16px} .page{display:none} .page.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px} .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 5px 18px rgba(15,50,80,.05)}
+.kpi{font-size:28px;font-weight:800;margin-top:6px} .muted{color:var(--muted);font-size:13px}
+.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px} label{font-weight:700;font-size:13px} input,select,textarea{width:100%;margin-top:6px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff} textarea{min-height:90px;resize:vertical}
+.section{margin-top:16px} .section h3{margin:0 0 10px} .item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+.itemhead{display:flex;gap:10px;align-items:flex-start} .code{font-weight:800;color:var(--nav)} .evidence{color:var(--muted);font-size:12px;margin-top:5px}
+.choices{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px} .choices label{font-weight:600;border:1px solid var(--line);padding:8px 10px;border-radius:9px;cursor:pointer}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0} .primary{background:var(--nav);color:#fff} .success{background:var(--ok);color:#fff} .danger{background:var(--bad);color:#fff} .light{background:#eaf1f7;color:var(--nav)}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden} th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;font-size:13px} th{background:#eaf1f7}
+.badge{display:inline-block;padding:5px 8px;border-radius:99px;font-size:11px;font-weight:800} .b-ok{background:#dff5ea;color:#14623f} .b-warn{background:#fff0cc;color:#8b5b00} .b-bad{background:#fde1e1;color:#8b2424} .b-nv{background:#eceff3;color:#596777}
+.notice{padding:12px 14px;background:#fff9df;border:1px solid #eadb8a;border-radius:12px;font-size:13px}
+footer{text-align:center;color:var(--muted);padding:30px;font-size:12px}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:1fr}} @media(max-width:560px){.grid{grid-template-columns:1fr}header{padding:18px}}
+@media print{header,nav,.no-print,footer{display:none!important}body{background:#fff}main{max-width:none;margin:0}.page{display:block!important}.card,.item{box-shadow:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>PKKM SUMENEP 2026</h1>
+  <p>Aplikasi Pemantauan Pelaksanaan Penilaian Kinerja Kepala Madrasah Tahunan</p>
+  <nav>
+    <button class="active" onclick="showPage('dashboard',this)">Dashboard</button>
+    <button onclick="showPage('form',this)">Input Pemantauan</button>
+    <button onclick="showPage('data',this)">Data Pemantauan</button>
+    <button onclick="showPage('laporan',this)">Laporan</button>
+    <button onclick="showPage('gabungan',this)">Laporan Gabungan</button>
+  </nav>
+</header>
+<main>
+<section id="dashboard" class="page active">
+  <div class="notice"><b>Catatan:</b> aplikasi ini adalah instrumen <b>pemantauan pelaksanaan</b>. Butir indikator perlu divalidasi kembali oleh Kemenag Sumenep terhadap Juknis/format resmi yang digunakan sebelum ditetapkan sebagai instrumen final.</div>
+  <div class="grid" style="margin-top:16px">
+    <div class="card"><div class="muted">Total pemantauan tersimpan</div><div id="kTotal" class="kpi">0</div></div>
+    <div class="card"><div class="muted">Sesuai / Ya</div><div id="kYes" class="kpi">0</div></div>
+    <div class="card"><div class="muted">Tidak Sesuai</div><div id="kNo" class="kpi">0</div></div>
+    <div class="card"><div class="muted">Tidak Diverifikasi</div><div id="kNv" class="kpi">0</div></div>
+  </div>
+  <div class="grid" style="margin-top:14px">
+    <div class="card" style="grid-column:span 2"><h3>Status Pemantauan</h3><div id="statusChart"></div></div>
+    <div class="card" style="grid-column:span 2"><h3>Tim Pemantau pada SK 191/2026</h3><div id="monitorList"></div></div>
+  </div>
+</section>
+
+<section id="form" class="page">
+  <div class="card">
+    <h2>Form Pemantauan Lapangan</h2>
+    <div class="formgrid">
+      <div><label>Nama Madrasah<input id="fMadrasah" placeholder="Contoh: MTs ..."></label></div>
+      <div><label>NSM / NPSN<input id="fNsm" placeholder="NSM / NPSN"></label></div>
+      <div><label>Jenjang<select id="fJenjang"><option value="">Pilih</option><option>RA</option><option>MI</option><option>MTs</option><option>MA</option></select></label></div>
+      <div><label>Kecamatan<input id="fKec" placeholder="Kecamatan"></label></div>
+      <div><label>Kepala Madrasah<input id="fKamad" placeholder="Nama Kepala Madrasah"></label></div>
+      <div><label>Tim Pemantau<select id="fMonitor"></select></label></div>
+      <div><label>Tanggal Pemantauan<input id="fTanggal" type="date"></label></div>
+      <div><label>Status Kunjungan<select id="fStatus"><option>Selesai</option><option>Perlu Tindak Lanjut</option><option>Terjadwal</option></select></label></div>
+    </div>
+  </div>
+  <div id="instrumentBox"></div>
+  <div class="card">
+    <label>Temuan Utama<textarea id="fTemuan" placeholder="Tuliskan temuan pemantauan..."></textarea></label>
+    <label style="display:block;margin-top:12px">Rekomendasi / Tindak Lanjut<textarea id="fRekom" placeholder="Tuliskan rekomendasi dan tindak lanjut..."></textarea></label>
+    <label style="display:block;margin-top:12px">Dokumentasi (nama file/link opsional)<input id="fBukti" placeholder="Contoh: foto_01.jpg atau link penyimpanan"></label>
+    <div class="actions">
+      <button class="btn primary" onclick="saveRecord()">Simpan Pemantauan</button>
+      <button class="btn light" onclick="resetForm()">Kosongkan</button>
+    </div>
+  </div>
+</section>
+
+<section id="data" class="page">
+  <div class="card">
+    <div class="actions no-print">
+      <button class="btn primary" onclick="exportCSV()">Ekspor CSV</button>
+      <button class="btn danger" onclick="clearAll()">Hapus seluruh data lokal</button>
+    </div>
+    <div style="overflow:auto"><table><thead><tr><th>Tanggal</th><th>Madrasah</th><th>Jenjang</th><th>Kecamatan</th><th>Tim Pemantau</th><th>Status</th><th>Skor Kepatuhan</th><th>Aksi</th></tr></thead><tbody id="dataBody"></tbody></table></div>
+  </div>
+</section>
+
+<section id="laporan" class="page">
+  <div class="card">
+    <h2>Laporan Pemantauan</h2>
+    <div id="report"></div>
+    <div class="actions no-print"><button class="btn primary" onclick="window.print()">Cetak / Simpan PDF</button></div>
+  </div>
+</section>
+</main>
+
+<section id="gabungan" class="page">
+  <div class="card">
+    <h2>Laporan Gabungan Hasil Pemantauan PKKM 2026</h2>
+    <p class="muted">Laporan ini menggabungkan seluruh hasil pemantauan yang tersimpan pada aplikasi di perangkat ini.</p>
+    <div id="combinedReport"></div>
+    <div class="actions no-print">
+      <button class="btn primary" onclick="window.print()">Cetak / Simpan PDF</button>
+      <button class="btn light" onclick="exportCombinedCSV()">Ekspor Rekap Gabungan CSV</button>
+    </div>
+  </div>
+</section>
+<footer>PKKM Sumenep 2026 • Laporan Gabungan dan laporan per lembaga dihitung dari seluruh data yang tersimpan di browser perangkat pengguna (localStorage); versi ini belum menjadi database bersama.</footer>
+
+<script>
+const monitors = [{"name": "Ali Wafa, M.Pd.I", "wilayah": "Ambunten; Dasuk"}, {"name": "Dwi Ikasari Oktavia, S.Pd,.M.Pd", "wilayah": "Rubaru; Kota Sumenep"}, {"name": "Mohammad Nurul Hajar, M.Pd", "wilayah": "Dungkek; Batang-Batang"}, {"name": "Meike Wijaya, S.Pd,.M.Pd", "wilayah": "Lenteng; Pasongsongan"}, {"name": "Achmad Muchlis, S.Pd,.M.Pd.I", "wilayah": "Giligenteng; Ganding"}, {"name": "Syaifuddin, S.Pd.I", "wilayah": "Kangayan; Sapeken; Nonggunong"}, {"name": "Ahmad Jailani, S.Pd,.M.Pd", "wilayah": "Masalembu; Arjasa; Talango"}, {"name": "Ahmad Tamam, S.Pd.I,.M.M", "wilayah": "Pragaan; Ra'as"}, {"name": "Ahmad Wasid, S.Pd,.M.M.Pd", "wilayah": "Guluk-guluk; Bluto"}, {"name": "Jony Hermanto, S.Pd,. M.Pd", "wilayah": "Saronggi; Batu Putih"}, {"name": "Lindawati, S.Pd,.M.M", "wilayah": "Gapura; Manding"}];
+const instrument = [{"group": "A", "section": "Administrasi & Kesiapan", "code": "A1", "indicator": "SK/Surat tugas pelaksanaan PKKM tersedia dan dapat ditunjukkan.", "evidence": "Dokumen SK/Surat Tugas"}, {"group": "A", "section": "Administrasi & Kesiapan", "code": "A2", "indicator": "Jadwal pelaksanaan PKKM tersedia dan sesuai dengan pelaksanaan di lapangan.", "evidence": "Jadwal/undangan"}, {"group": "A", "section": "Administrasi & Kesiapan", "code": "A3", "indicator": "Instrumen PKKM yang digunakan oleh Tim Penilai tersedia dan sesuai dengan ketentuan yang dirujuk.", "evidence": "Instrumen PKKM"}, {"group": "A", "section": "Administrasi & Kesiapan", "code": "A4", "indicator": "Bukti/dokumen pendukung penilaian disiapkan oleh madrasah.", "evidence": "Daftar bukti/dokumen"}, {"group": "A", "section": "Administrasi & Kesiapan", "code": "A5", "indicator": "Daftar hadir/berita acara atau dokumen administrasi pelaksanaan tersedia.", "evidence": "Daftar hadir/BA"}, {"group": "B", "section": "Pelaksanaan Penilaian", "code": "B1", "indicator": "Tim Penilai melaksanakan PKKM sesuai jadwal yang ditetapkan.", "evidence": "Jadwal + dokumentasi"}, {"group": "B", "section": "Pelaksanaan Penilaian", "code": "B2", "indicator": "Tim Penilai melakukan pemeriksaan/verifikasi terhadap bukti kinerja yang relevan.", "evidence": "Bukti kinerja + catatan"}, {"group": "B", "section": "Pelaksanaan Penilaian", "code": "B3", "indicator": "Proses penilaian mencakup komponen tahunan: usaha pengembangan madrasah.", "evidence": "Instrumen + bukti"}, {"group": "B", "section": "Pelaksanaan Penilaian", "code": "B4", "indicator": "Proses penilaian mencakup komponen tahunan: pelaksanaan tugas manajerial.", "evidence": "Instrumen + bukti"}, {"group": "B", "section": "Pelaksanaan Penilaian", "code": "B5", "indicator": "Proses penilaian mencakup komponen tahunan: pengembangan kewirausahaan.", "evidence": "Instrumen + bukti"}, {"group": "B", "section": "Pelaksanaan Penilaian", "code": "B6", "indicator": "Proses penilaian mencakup komponen tahunan: supervisi kepada guru dan tenaga kependidikan.", "evidence": "Instrumen + bukti"}, {"group": "B", "section": "Pelaksanaan Penilaian", "code": "B7", "indicator": "Tim Penilai melakukan klarifikasi/konfirmasi apabila diperlukan.", "evidence": "Catatan klarifikasi"}, {"group": "C", "section": "Objektivitas & Bukti", "code": "C1", "indicator": "Setiap temuan/hasil penilaian memiliki dasar bukti yang dapat ditelusuri.", "evidence": "Bukti fisik/digital"}, {"group": "C", "section": "Objektivitas & Bukti", "code": "C2", "indicator": "Catatan penilaian/temuan dibuat secara jelas dan dapat dibaca.", "evidence": "Instrumen/catatan"}, {"group": "C", "section": "Objektivitas & Bukti", "code": "C3", "indicator": "Dokumentasi kegiatan pemantauan tersedia.", "evidence": "Foto/dokumentasi"}, {"group": "D", "section": "Penutupan & Tindak Lanjut", "code": "D1", "indicator": "Hasil/temuan PKKM dikomunikasikan kepada Kepala Madrasah atau pihak terkait.", "evidence": "Catatan/BA"}, {"group": "D", "section": "Penutupan & Tindak Lanjut", "code": "D2", "indicator": "Rekomendasi/tindak lanjut atas hasil PKKM dicatat.", "evidence": "Rekomendasi"}, {"group": "D", "section": "Penutupan & Tindak Lanjut", "code": "D3", "indicator": "Berita acara/rekap hasil pelaksanaan ditandatangani atau disahkan sesuai mekanisme yang digunakan.", "evidence": "BA/rekap"}, {"group": "E", "section": "Kepatuhan Umum", "code": "E1", "indicator": "Pelaksanaan PKKM dapat dipertanggungjawabkan berdasarkan dokumen, proses, dan bukti yang diperiksa.", "evidence": "Seluruh bukti"}];
+let records = JSON.parse(localStorage.getItem('pkkm_sumenep_2026') || '[]');
+
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderAll();
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function badge(s){
+  let cls=s==='Ya'?'b-ok':s==='Tidak'?'b-bad':s==='NV'?'b-nv':'b-warn';
+  return `<span class="badge ${cls}">${esc(s)}</span>`;
+}
+function buildForm(){
+  const sel=document.getElementById('fMonitor');
+  sel.innerHTML='<option value="">Pilih Tim Pemantau</option>'+monitors.map(m=>`<option>${esc(m.name)}</option>`).join('');
+  const box=document.getElementById('instrumentBox');
+  const groups=[...new Set(instrument.map(x=>x.group))];
+  box.innerHTML=groups.map(g=>{
+    const items=instrument.filter(x=>x.group===g);
+    return `<div class="section"><div class="card"><h3>${esc(items[0].section)} <span class="muted">(${
+      items.length
+    } indikator)</span></h3>${items.map(x=>`
+      <div class="item">
+        <div class="itemhead"><div class="code">${x.code}</div><div><b>${esc(x.indicator)}</b><div class="evidence">Bukti yang diperiksa: ${esc(x.evidence)}</div></div></div>
+        <div class="choices">
+          <label><input type="radio" name="s_${x.code}" value="Ya"> Ya</label>
+          <label><input type="radio" name="s_${x.code}" value="Tidak"> Tidak</label>
+          <label><input type="radio" name="s_${x.code}" value="NV"> NV</label>
+        </div>
+        <textarea id="note_${x.code}" placeholder="Catatan/bukti/temuan untuk ${x.code}..." style="margin-top:8px;min-height:55px"></textarea>
+      </div>`).join('')}</div></div>`;
+  }).join('');
+}
+function saveRecord(){
+  const rec={
+    id:Date.now(),
+    madrasah:document.getElementById('fMadrasah').value.trim(),
+    nsm:document.getElementById('fNsm').value.trim(),
+    jenjang:document.getElementById('fJenjang').value,
+    kec:document.getElementById('fKec').value.trim(),
+    kamad:document.getElementById('fKamad').value.trim(),
+    monitor:document.getElementById('fMonitor').value,
+    tanggal:document.getElementById('fTanggal').value,
+    visitStatus:document.getElementById('fStatus').value,
+    temuan:document.getElementById('fTemuan').value.trim(),
+    rekom:document.getElementById('fRekom').value.trim(),
+    bukti:document.getElementById('fBukti').value.trim(),
+    items:{}
+  };
+  if(!rec.madrasah || !rec.monitor || !rec.tanggal){alert('Nama madrasah, Tim Pemantau, dan tanggal wajib diisi.');return}
+  instrument.forEach(x=>{
+    const r=document.querySelector(`input[name="s_${x.code}"]:checked`);
+    rec.items[x.code]={status:r?r.value:'',note:document.getElementById('note_'+x.code).value};
+  });
+  records.push(rec); localStorage.setItem('pkkm_sumenep_2026',JSON.stringify(records));
+  alert('Data pemantauan tersimpan di perangkat ini.');
+  resetForm(); showPage('data');
+}
+function resetForm(){
+  document.querySelectorAll('#form input,#form textarea').forEach(x=>{if(x.type!=='radio')x.value='';});
+  document.querySelectorAll('#form select').forEach(x=>x.selectedIndex=0);
+  document.querySelectorAll('#instrumentBox input[type=radio]').forEach(x=>x.checked=false);
+}
+function score(rec){
+  const vals=Object.values(rec.items||{}).map(x=>x.status).filter(Boolean);
+  if(!vals.length)return 0;
+  return Math.round(vals.filter(x=>x==='Ya').length/vals.length*100);
+}
+function renderDashboard(){
+  let yes=0,no=0,nv=0,total=0;
+  records.forEach(r=>Object.values(r.items||{}).forEach(x=>{if(x.status==='Ya')yes++;if(x.status==='Tidak')no++;if(x.status==='NV')nv++;if(x.status)total++;}));
+  document.getElementById('kTotal').textContent=records.length;
+  document.getElementById('kYes').textContent=yes;
+  document.getElementById('kNo').textContent=no;
+  document.getElementById('kNv').textContent=nv;
+  const counts={'Selesai':0,'Perlu Tindak Lanjut':0,'Terjadwal':0};
+  records.forEach(r=>counts[r.visitStatus]=(counts[r.visitStatus]||0)+1);
+  document.getElementById('statusChart').innerHTML=Object.entries(counts).map(([k,v])=>`<div style="margin:10px 0"><b>${esc(k)}</b><div style="height:10px;background:#e9eef3;border-radius:9px"><div style="height:10px;width:${records.length?Math.round(v/records.length*100):0}%;background:#1e5b8d;border-radius:9px"></div></div><span class="muted">${v}</span></div>`).join('');
+  document.getElementById('monitorList').innerHTML=monitors.map(m=>`<div style="padding:8px 0;border-bottom:1px solid #edf1f4"><b>${esc(m.name)}</b><div class="muted">${esc(m.wilayah)}</div></div>`).join('');
+}
+function renderData(){
+  const body=document.getElementById('dataBody');
+  body.innerHTML=records.length?records.map(r=>`<tr><td>${esc(r.tanggal)}</td><td><b>${esc(r.madrasah)}</b><div class="muted">${esc(r.nsm)}</div></td><td>${esc(r.jenjang)}</td><td>${esc(r.kec)}</td><td>${esc(r.monitor)}</td><td>${esc(r.visitStatus)}</td><td>${score(r)}%</td><td><button class="btn light" onclick="viewReport(${r.id})">Lihat</button> <button class="btn danger" onclick="delRec(${r.id})">Hapus</button></td></tr>`).join(''):'<tr><td colspan="8" class="muted">Belum ada data.</td></tr>';
+}
+function viewReport(id){
+  const r=records.find(x=>x.id===id); if(!r)return;
+  document.getElementById('report').innerHTML=`
+    <h3>${esc(r.madrasah)}</h3>
+    <p><b>${esc(r.jenjang)}</b> • ${esc(r.kec)} • ${esc(r.tanggal)} • Tim: ${esc(r.monitor)}</p>
+    <p>Skor kepatuhan indikator pemantauan: <b>${score(r)}%</b></p>
+    <h4>Ringkasan indikator</h4>
+    <table><thead><tr><th>Kode</th><th>Indikator</th><th>Status</th><th>Catatan</th></tr></thead><tbody>
+    ${instrument.map(x=>`<tr><td>${x.code}</td><td>${esc(x.indicator)}</td><td>${badge(r.items[x.code]?.status||'Belum diisi')}</td><td>${esc(r.items[x.code]?.note||'')}</td></tr>`).join('')}
+    </tbody></table>
+    <h4>Temuan Utama</h4><p>${esc(r.temuan||'-')}</p>
+    <h4>Rekomendasi / Tindak Lanjut</h4><p>${esc(r.rekom||'-')}</p>
+    <h4>Dokumentasi</h4><p>${esc(r.bukti||'-')}</p>`;
+  showPage('laporan');
+}
+function delRec(id){if(confirm('Hapus data ini?')){records=records.filter(r=>r.id!==id);localStorage.setItem('pkkm_sumenep_2026',JSON.stringify(records));renderAll();}}
+function clearAll(){if(confirm('Hapus SELURUH data pemantauan dari browser ini?')){records=[];localStorage.removeItem('pkkm_sumenep_2026');renderAll();}}
+function exportCSV(){
+  const rows=[['Tanggal','Madrasah','NSM/NPSN','Jenjang','Kecamatan','Kepala Madrasah','Tim Pemantau','Status Kunjungan','Skor Kepatuhan','Temuan','Rekomendasi','Dokumentasi']];
+  records.forEach(r=>rows.push([r.tanggal,r.madrasah,r.nsm,r.jenjang,r.kec,r.kamad,r.monitor,r.visitStatus,score(r),r.temuan,r.rekom,r.bukti]));
+  const csv=rows.map(row=>row.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
+  const blob=new Blob(["\ufeff"+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Rekap_Pemantauan_PKKM_Sumenep_2026.csv';a.click();
+}
+
+function pct(n,d){ return d ? Math.round(n/d*100) : 0; }
+function escCSV(v){ return `"${String(v??'').replaceAll('"','""')}"`; }
+
+function renderCombined(){
+  const el=document.getElementById('combinedReport');
+  if(!el)return;
+  if(!records.length){
+    el.innerHTML='<div class="notice">Belum ada data pemantauan yang tersimpan. Laporan gabungan akan terisi otomatis setelah Tim Pemantau menginput data.</div>';
+    return;
+  }
+
+  let totalIndicators=0, yes=0, no=0, nv=0, filled=0;
+  const byKec={}, byMonitor={}, byStatus={};
+  const findings=[], recommendations=[];
+
+  records.forEach(r=>{
+    byStatus[r.visitStatus]=(byStatus[r.visitStatus]||0)+1;
+    const kec=r.kec||'Belum diisi';
+    const mon=r.monitor||'Belum diisi';
+    if(!byKec[kec])byKec[kec]={records:0,yes:0,no:0,nv:0,filled:0,total:0};
+    if(!byMonitor[mon])byMonitor[mon]={records:0,yes:0,no:0,nv:0,filled:0,total:0};
+    byKec[kec].records++; byMonitor[mon].records++;
+
+    Object.entries(r.items||{}).forEach(([code,x])=>{
+      totalIndicators++;
+      if(x.status==='Ya'){yes++;byKec[kec].yes++;byMonitor[mon].yes++;}
+      if(x.status==='Tidak'){no++;byKec[kec].no++;byMonitor[mon].no++;}
+      if(x.status==='NV'){nv++;byKec[kec].nv++;byMonitor[mon].nv++;}
+      if(x.status){filled++;byKec[kec].filled++;byMonitor[mon].filled++;}
+      byKec[kec].total++; byMonitor[mon].total++;
+    });
+    if(r.temuan) findings.push({madrasah:r.madrasah||'-',kec:r.kec||'-',monitor:r.monitor||'-',text:r.temuan});
+    if(r.rekom) recommendations.push({madrasah:r.madrasah||'-',kec:r.kec||'-',monitor:r.monitor||'-',text:r.rekom});
+  });
+
+  const avgCompliance=pct(yes,totalIndicators);
+  const statusRows=Object.entries(byStatus).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v}</td><td>${pct(v,records.length)}%</td></tr>`).join('');
+
+  const kecRows=Object.entries(byKec).sort((a,b)=>a[0].localeCompare(b[0])).map(([k,v])=>`
+    <tr><td>${esc(k)}</td><td>${v.records}</td><td>${v.yes}</td><td>${v.no}</td><td>${v.nv}</td><td>${pct(v.yes,v.total)}%</td></tr>`).join('');
+
+  const monRows=Object.entries(byMonitor).sort((a,b)=>a[0].localeCompare(b[0])).map(([k,v])=>`
+    <tr><td>${esc(k)}</td><td>${v.records}</td><td>${v.yes}</td><td>${v.no}</td><td>${v.nv}</td><td>${pct(v.yes,v.total)}%</td></tr>`).join('');
+
+  const findingRows=findings.length ? findings.map((x,i)=>`
+    <tr><td>${i+1}</td><td>${esc(x.madrasah)}</td><td>${esc(x.kec)}</td><td>${esc(x.monitor)}</td><td>${esc(x.text)}</td></tr>`).join('') :
+    '<tr><td colspan="5">Belum ada temuan yang diinput.</td></tr>';
+
+  const recomRows=recommendations.length ? recommendations.map((x,i)=>`
+    <tr><td>${i+1}</td><td>${esc(x.madrasah)}</td><td>${esc(x.kec)}</td><td>${esc(x.monitor)}</td><td>${esc(x.text)}</td></tr>`).join('') :
+    '<tr><td colspan="5">Belum ada rekomendasi yang diinput.</td></tr>';
+
+  const indicatorStats=instrument.map(x=>{
+    let y=0,n=0,v=0,t=0;
+    records.forEach(r=>{
+      const s=r.items?.[x.code]?.status;
+      if(s){t++; if(s==='Ya')y++; if(s==='Tidak')n++; if(s==='NV')v++;}
+    });
+    return {...x,y,n,v,t};
+  });
+
+  const indicatorRows=indicatorStats.map(x=>`
+    <tr><td>${esc(x.code)}</td><td>${esc(x.indicator)}</td><td>${x.y}</td><td>${x.n}</td><td>${x.v}</td><td>${pct(x.y,x.t)}%</td></tr>`).join('');
+
+  el.innerHTML=`
+    <div class="grid" style="margin:14px 0">
+      <div class="card"><div class="muted">Lembaga dipantau</div><div class="kpi">${records.length}</div></div>
+      <div class="card"><div class="muted">Total indikator terisi</div><div class="kpi">${filled}</div></div>
+      <div class="card"><div class="muted">Indikator "Ya"</div><div class="kpi">${yes}</div></div>
+      <div class="card"><div class="muted">Kepatuhan indikator</div><div class="kpi">${avgCompliance}%</div></div>
+    </div>
+
+    <h3>A. Ringkasan Pelaksanaan</h3>
+    <table><thead><tr><th>Status Pemantauan</th><th>Jumlah Lembaga</th><th>Persentase</th></tr></thead>
+    <tbody>${statusRows}</tbody></table>
+
+    <h3 style="margin-top:22px">B. Rekap per Kecamatan</h3>
+    <table><thead><tr><th>Kecamatan</th><th>Lembaga</th><th>Ya</th><th>Tidak</th><th>NV</th><th>Kepatuhan</th></tr></thead>
+    <tbody>${kecRows}</tbody></table>
+
+    <h3 style="margin-top:22px">C. Rekap per Tim Pemantau</h3>
+    <table><thead><tr><th>Tim Pemantau</th><th>Lembaga</th><th>Ya</th><th>Tidak</th><th>NV</th><th>Kepatuhan</th></tr></thead>
+    <tbody>${monRows}</tbody></table>
+
+    <h3 style="margin-top:22px">D. Rekap per Indikator</h3>
+    <div style="overflow:auto"><table><thead><tr><th>Kode</th><th>Indikator</th><th>Ya</th><th>Tidak</th><th>NV</th><th>Kepatuhan</th></tr></thead>
+    <tbody>${indicatorRows}</tbody></table></div>
+
+    <h3 style="margin-top:22px">E. Temuan Hasil Pemantauan</h3>
+    <div style="overflow:auto"><table><thead><tr><th>No</th><th>Madrasah</th><th>Kecamatan</th><th>Tim Pemantau</th><th>Temuan</th></tr></thead>
+    <tbody>${findingRows}</tbody></table></div>
+
+    <h3 style="margin-top:22px">F. Rekomendasi / Tindak Lanjut</h3>
+    <div style="overflow:auto"><table><thead><tr><th>No</th><th>Madrasah</th><th>Kecamatan</th><th>Tim Pemantau</th><th>Rekomendasi</th></tr></thead>
+    <tbody>${recomRows}</tbody></table></div>
+
+    <h3 style="margin-top:22px">G. Kesimpulan Otomatis</h3>
+    <div class="notice">
+      Berdasarkan ${records.length} lembaga yang telah tersimpan dalam aplikasi, terdapat ${filled} indikator yang terisi.
+      Sebanyak ${yes} indikator berstatus "Ya", ${no} berstatus "Tidak", dan ${nv} berstatus "NV".
+      Persentase indikator berstatus "Ya" terhadap seluruh indikator yang terisi adalah <b>${avgCompliance}%</b>.
+      Kesimpulan ini bersifat rekapitulatif dan perlu dilengkapi dengan analisis Tim Pemantau/Kantor Kemenag.
+    </div>
+  `;
+}
+
+function exportCombinedCSV(){
+  if(!records.length){alert('Belum ada data untuk diekspor.');return;}
+  const rows=[
+    ['Tanggal','Madrasah','NSM/NPSN','Jenjang','Kecamatan','Kepala Madrasah','Tim Pemantau','Status Kunjungan','Skor Kepatuhan','Temuan','Rekomendasi','Dokumentasi']
+  ];
+  records.forEach(r=>rows.push([r.tanggal,r.madrasah,r.nsm,r.jenjang,r.kec,r.kamad,r.monitor,r.visitStatus,score(r),r.temuan,r.rekom,r.bukti]));
+  const csv=rows.map(row=>row.map(escCSV).join(',')).join('\n');
+  const blob=new Blob(["\ufeff"+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Laporan_Gabungan_Pemantauan_PKKM_Sumenep_2026.csv';a.click();
+}
+
+function renderAll(){renderDashboard();renderData();renderCombined();}
+
+buildForm(); renderAll();
+</script>
+</body></html>
